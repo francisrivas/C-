@@ -51,8 +51,7 @@ namespace CalculatorTest
             OriginalCalculatorMode = CalculatorSession.FindElementByAccessibilityId("NavButton").Text;
             CalculatorSession.FindElementByAccessibilityId("Standard").Click();
 
-            // Use series of operation to locate the calculator result text element as a workaround
-            // TODO: Use a proper appium/webdriver nuget package that allow us to query based on automationId
+            
             CalculatorSession.FindElementByAccessibilityId("ClearEntry").Click();
             CalculatorSession.FindElementByAccessibilityId("num7Button").Click();
             CalculatorResult = CalculatorSession.FindElementByAccessibilityId("CalculatorResults");
