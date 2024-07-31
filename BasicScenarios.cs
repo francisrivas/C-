@@ -51,7 +51,7 @@ namespace CalculatorTest
             OriginalCalculatorMode = CalculatorSession.FindElementByAccessibilityId("NavButton").Text;
             CalculatorSession.FindElementByAccessibilityId("Standard").Click();
 
-            
+
             CalculatorSession.FindElementByAccessibilityId("ClearEntry").Click();
             CalculatorSession.FindElementByAccessibilityId("num7Button").Click();
             CalculatorResult = CalculatorSession.FindElementByAccessibilityId("CalculatorResults");
