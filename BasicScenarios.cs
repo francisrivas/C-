@@ -1,4 +1,4 @@
-﻿//******************************************************************************
+//******************************************************************************
 //
 /*
 Copyright (c) 2016 Appium Committers. All rights reserved.
@@ -20,6 +20,8 @@ under the License.
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using OpenQA.Selenium.Appium;
+using OpenQA.Selenium.Appium.Windows;
 using OpenQA.Selenium.Remote;
 
 namespace CalculatorTest
@@ -28,33 +30,32 @@ namespace CalculatorTest
     public class BasicScenarios
     {
         protected const string WindowsApplicationDriverUrl = "http://127.0.0.1:4723/wd/hub";
-        protected static RemoteWebDriver CalculatorSession;
-        protected static RemoteWebElement CalculatorResult;
+        protected static WindowsDriver<WindowsElement> CalculatorSession;
+        protected static WindowsElement CalculatorResult;
         protected static string OriginalCalculatorMode;
 
         [ClassInitialize]
         public static void Setup(TestContext context)
         {
             // Launch the calculator app
-            DesiredCapabilities appCapabilities = new DesiredCapabilities();
-            appCapabilities.SetCapability("app", "Microsoft.WindowsCalculator_8wekyb3d8bbwe!App");
-            appCapabilities.SetCapability("platformName", "Windows");
-            appCapabilities.SetCapability("deviceName", "WindowsPC");
-            CalculatorSession = new RemoteWebDriver(new Uri(WindowsApplicationDriverUrl), appCapabilities);
+            AppiumOptions appCapabilities = new AppiumOptions();
+            appCapabilities.AddAdditionalCapability("app", "Microsoft.WindowsCalculator_8wekyb3d8bbwe!App");
+            appCapabilities.AddAdditionalCapability("platformName", "Windows");
+            appCapabilities.AddAdditionalCapability("deviceName", "WindowsPC");
+            CalculatorSession = new WindowsDriver<WindowsElement>(new Uri(WindowsApplicationDriverUrl), appCapabilities);
             Assert.IsNotNull(CalculatorSession);
-            CalculatorSession.Manage().Timeouts().ImplicitlyWait(TimeSpan.FromSeconds(2));
+            CalculatorSession.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
 
             // Make sure we're in standard mode
-            CalculatorSession.FindElementByXPath("//Button[starts-with(@Name, \"Menu\")]").Click();
-            OriginalCalculatorMode = CalculatorSession.FindElementByXPath("//List[@AutomationId=\"FlyoutNav\"]//ListItem[@IsSelected=\"True\"]").Text;
-            CalculatorSession.FindElementByXPath("//ListItem[@Name=\"Standard Calculator\"]").Click();
+            CalculatorSession.FindElementByAccessibilityId("TogglePaneButton").Click();
+            OriginalCalculatorMode = CalculatorSession.FindElementByAccessibilityId("NavButton").Text;
+            CalculatorSession.FindElementByAccessibilityId("Standard").Click();
 
             // Use series of operation to locate the calculator result text element as a workaround
-            // We currently cannot query element by automationId without using modified appium dot net driver
             // TODO: Use a proper appium/webdriver nuget package that allow us to query based on automationId
-            CalculatorSession.FindElementByXPath("//Button[@Name=\"Clear\"]").Click();
-            CalculatorSession.FindElementByXPath("//Button[@Name=\"Seven\"]").Click();
-            CalculatorResult = CalculatorSession.FindElementByName("Display is  7 ") as RemoteWebElement;
+            CalculatorSession.FindElementByAccessibilityId("ClearEntry").Click();
+            CalculatorSession.FindElementByAccessibilityId("num7Button").Click();
+            CalculatorResult = CalculatorSession.FindElementByAccessibilityId("CalculatorResults");
             Assert.IsNotNull(CalculatorResult);
         }
 
@@ -62,8 +63,8 @@ namespace CalculatorTest
         public static void TearDown()
         {
             // Restore original mode before closing down
-            CalculatorSession.FindElementByXPath("//Button[starts-with(@Name, \"Menu\")]").Click();
-            CalculatorSession.FindElementByXPath("//ListItem[@Name=\"" + OriginalCalculatorMode + "\"]").Click();
+            CalculatorSession.FindElementByAccessibilityId("TogglePaneButton").Click();
+            CalculatorSession.FindElementByAccessibilityId("NavButton").Click();
 
             CalculatorResult = null;
             CalculatorSession.Dispose();
@@ -73,64 +74,64 @@ namespace CalculatorTest
         [TestInitialize]
         public void Clear()
         {
-            CalculatorSession.FindElementByName("Clear").Click();
+            CalculatorSession.FindElementByAccessibilityId("ClearEntry").Click();
             Assert.AreEqual("Display is  0 ", CalculatorResult.Text);
         }
 
         [TestMethod]
         public void Addition()
         {
-            CalculatorSession.FindElementByName("One").Click();
-            CalculatorSession.FindElementByName("Plus").Click();
-            CalculatorSession.FindElementByName("Seven").Click();
-            CalculatorSession.FindElementByName("Equals").Click();
+            CalculatorSession.FindElementByAccessibilityId("num1Button").Click();
+            CalculatorSession.FindElementByAccessibilityId("plusButton").Click();
+            CalculatorSession.FindElementByAccessibilityId("num7Button").Click();
+            CalculatorSession.FindElementByAccessibilityId("equalButton").Click();
             Assert.AreEqual("Display is  8 ", CalculatorResult.Text);
         }
 
         [TestMethod]
         public void Combination()
         {
-            CalculatorSession.FindElementByXPath("//Button[@Name=\"Seven\"]").Click();
-            CalculatorSession.FindElementByXPath("//Button[@Name=\"Multiply by\"]").Click();
-            CalculatorSession.FindElementByXPath("//Button[@Name=\"Nine\"]").Click();
-            CalculatorSession.FindElementByXPath("//Button[@Name=\"Plus\"]").Click();
-            CalculatorSession.FindElementByXPath("//Button[@Name=\"One\"]").Click();
-            CalculatorSession.FindElementByXPath("//Button[@Name=\"Equals\"]").Click();
-            CalculatorSession.FindElementByXPath("//Button[@Name=\"Divide by\"]").Click();
-            CalculatorSession.FindElementByXPath("//Button[@Name=\"Eight\"]").Click();
-            CalculatorSession.FindElementByXPath("//Button[@Name=\"Equals\"]").Click();
+            CalculatorSession.FindElementByAccessibilityId("num7Button").Click();
+            CalculatorSession.FindElementByAccessibilityId("multiplyButton").Click();
+            CalculatorSession.FindElementByAccessibilityId("num9Button").Click();
+            CalculatorSession.FindElementByAccessibilityId("plusButton").Click();
+            CalculatorSession.FindElementByAccessibilityId("num1Button").Click();
+            CalculatorSession.FindElementByAccessibilityId("equalButton").Click();
+            CalculatorSession.FindElementByAccessibilityId("divideButton").Click();
+            CalculatorSession.FindElementByAccessibilityId("num8Button").Click();
+            CalculatorSession.FindElementByAccessibilityId("equalButton").Click();
             Assert.AreEqual("Display is  8 ", CalculatorResult.Text);
         }
 
         [TestMethod]
         public void Division()
         {
-            CalculatorSession.FindElementByName("Eight").Click();
-            CalculatorSession.FindElementByName("Eight").Click();
-            CalculatorSession.FindElementByName("Divide by").Click();
-            CalculatorSession.FindElementByName("One").Click();
-            CalculatorSession.FindElementByName("One").Click();
-            CalculatorSession.FindElementByName("Equals").Click();
+            CalculatorSession.FindElementByAccessibilityId("num8Button").Click();
+            CalculatorSession.FindElementByAccessibilityId("num8Button").Click();
+            CalculatorSession.FindElementByAccessibilityId("divideButton").Click();
+            CalculatorSession.FindElementByAccessibilityId("num1Button").Click();
+            CalculatorSession.FindElementByAccessibilityId("num1Button").Click();
+            CalculatorSession.FindElementByAccessibilityId("equalButton").Click();
             Assert.AreEqual("Display is  8 ", CalculatorResult.Text);
         }
 
         [TestMethod]
         public void Multiplication()
         {
-            CalculatorSession.FindElementByName("Nine").Click();
-            CalculatorSession.FindElementByName("Multiply by").Click();
-            CalculatorSession.FindElementByName("Nine").Click();
-            CalculatorSession.FindElementByName("Equals").Click();
+            CalculatorSession.FindElementByAccessibilityId("num9Button").Click();
+            CalculatorSession.FindElementByAccessibilityId("multiplyButton").Click();
+            CalculatorSession.FindElementByAccessibilityId("num9Button").Click();
+            CalculatorSession.FindElementByAccessibilityId("equalButton").Click();
             Assert.AreEqual("Display is  81 ", CalculatorResult.Text);
         }
 
         [TestMethod]
         public void Subtraction()
         {
-            CalculatorSession.FindElementByName("Nine").Click();
-            CalculatorSession.FindElementByName("Minus").Click();
-            CalculatorSession.FindElementByName("One").Click();
-            CalculatorSession.FindElementByName("Equals").Click();
+            CalculatorSession.FindElementByAccessibilityId("num9Button").Click();
+            CalculatorSession.FindElementByAccessibilityId("minusButton").Click();
+            CalculatorSession.FindElementByAccessibilityId("num1Button").Click();
+            CalculatorSession.FindElementByAccessibilityId("equalButton").Click();
             Assert.AreEqual("Display is  8 ", CalculatorResult.Text);
         }
     }
